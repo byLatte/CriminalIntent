@@ -11,6 +11,7 @@ import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 
+// 디테일 뷰
 class CrimeFragment: Fragment(){
 
     private lateinit var crime: Crime
