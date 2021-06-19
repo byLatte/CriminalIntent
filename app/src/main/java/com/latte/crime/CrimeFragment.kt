@@ -11,7 +11,6 @@ import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.latte.crime.database.CrimeDetailViewModel
 import androidx.lifecycle.Observer
 import java.util.*
 
@@ -71,7 +70,11 @@ class CrimeFragment: Fragment(){
     private fun updateUI() {
         titleField.setText(crime.title)
         dateButton.text = crime.date.toString()
-        solvedCheckBox.isChecked = crime.isSolved
+//        solvedCheckBox.isChecked = crime.isSolved
+        solvedCheckBox.apply{
+            isChecked = crime.isSolved
+            jumpDrawablesToCurrentState() //check 애니메이션 생략
+        }
     }
 
 
@@ -97,6 +100,11 @@ class CrimeFragment: Fragment(){
                 crime.isSolved = isChecked
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        crimeDetailViewModel.saveCrime(crime)
     }
 
     companion object{

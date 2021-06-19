@@ -1,10 +1,10 @@
-package com.latte.crime.database
+package com.latte.crime
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.latte.crime.Crime
+import com.latte.crime.database.CrimeRepository
 import java.util.*
 
 private const val TAG = "CrimeDetailViewModel"
@@ -18,6 +18,10 @@ class CrimeDetailViewModel: ViewModel() {
 
     fun loadCrime(crimeId: UUID){
         crimeIdLiveData.value = crimeId
+    }
+
+    fun saveCrime(crime: Crime){
+        crimeRepository.updateCrime(crime)
     }
 
 }
