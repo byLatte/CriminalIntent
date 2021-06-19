@@ -16,8 +16,10 @@ import java.util.*
 
 
 private const val ARG_CRIME_ID = "crime_id"
+private const val DIALOG_DATE = "dialogDate"
+private const val REQUEST_DATE = 0
 // 디테일 뷰
-class CrimeFragment: Fragment(){
+class CrimeFragment: Fragment(), DatePickerFragment.Callbacks{
 
     private lateinit var crime: Crime
     private lateinit var titleField: EditText
@@ -48,10 +50,10 @@ class CrimeFragment: Fragment(){
         dateButton = view.findViewById(R.id.crime_date) as Button // EditText 로 변환
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
 
-        dateButton.apply {
-            text = crime.date.toString()
-            isEnabled = false // 버튼 비활성화
-        }
+//        dateButton.apply {
+//            text = crime.date.toString()
+//            isEnabled = false // 버튼 비활성화
+//        }
 
         return view
     }
@@ -100,12 +102,26 @@ class CrimeFragment: Fragment(){
                 crime.isSolved = isChecked
             }
         }
+
+        dateButton.setOnClickListener{
+//            DatePickerFragment().apply {
+            DatePickerFragment.newInstance(crime.date).apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE) //appcompat 1.3이상에선 권장하지않는방법
+                show(this@CrimeFragment.getParentFragmentManager(), DIALOG_DATE)
+            }
+        }
     }
 
     override fun onStop() {
         super.onStop()
         crimeDetailViewModel.saveCrime(crime)
     }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
+    }
+
 
     companion object{
         fun newInstance(crimeId: UUID): CrimeFragment{
@@ -117,5 +133,7 @@ class CrimeFragment: Fragment(){
             }
         }
     }
+
+
 
 }
