@@ -9,3 +9,13 @@ implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 ```
 implementation 'androidx.recyclerview:recyclerview:1.1.0'
 ```
+- Room (Database 이용)
+```
+plugins {
+    id 'kotlin-kapt' // 추가
+}
+
+implementation 'androidx.room:room-runtime:2.2.6'
+kapt 'androidx.room:room-compiler:2.2.6'
+```
+
