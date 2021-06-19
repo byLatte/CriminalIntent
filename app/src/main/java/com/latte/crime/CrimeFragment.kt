@@ -10,7 +10,13 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.latte.crime.database.CrimeDetailViewModel
+import androidx.lifecycle.Observer
+import java.util.*
 
+
+private const val ARG_CRIME_ID = "crime_id"
 // 디테일 뷰
 class CrimeFragment: Fragment(){
 
@@ -19,9 +25,17 @@ class CrimeFragment: Fragment(){
     private lateinit var dateButton: Button
     private lateinit var solvedCheckBox: CheckBox
 
+    private val crimeDetailViewModel: CrimeDetailViewModel by lazy{
+        ViewModelProvider(this).get(CrimeDetailViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crime = Crime()
+        var crimeId: UUID = arguments?.getSerializable(ARG_CRIME_ID) as UUID
+
+        crimeDetailViewModel.loadCrime(crimeId)
+
     }
 
     override fun onCreateView(
@@ -43,21 +57,36 @@ class CrimeFragment: Fragment(){
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        crimeDetailViewModel.crimeLiveData.observe(
+            viewLifecycleOwner,
+            Observer {crime -> crime?.let {
+                this.crime = crime
+                updateUI()
+            }}
+        )
+    }
+
+    private fun updateUI() {
+        titleField.setText(crime.title)
+        dateButton.text = crime.date.toString()
+        solvedCheckBox.isChecked = crime.isSolved
+    }
+
+
     // textWatcher를 onStart에서 설정해줘야 뷰가 복원된 후 실행된다.
     // 그전인 onCreate,onCreateView에서 설정하면 뷰가 복원되기전 실행이 된다.
     override fun onStart() {
         super.onStart()
         val titleWatcher = object: TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                TODO("Not yet implemented")
             }
-
             override fun onTextChanged(sequence: CharSequence?, start: Int, before: Int, count: Int) {
                 crime.title = sequence.toString()
             }
 
             override fun afterTextChanged(p0: Editable?) {
-                TODO("Not yet implemented")
             }
         }
 
@@ -68,7 +97,17 @@ class CrimeFragment: Fragment(){
                 crime.isSolved = isChecked
             }
         }
+    }
 
+    companion object{
+        fun newInstance(crimeId: UUID): CrimeFragment{
+            val args = Bundle().apply {
+                putSerializable(ARG_CRIME_ID,crimeId)
+            }
+            return CrimeFragment().apply {
+                arguments = args
+            }
+        }
     }
 
 }
