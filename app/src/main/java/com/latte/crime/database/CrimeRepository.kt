@@ -1,6 +1,7 @@
 package com.latte.crime.database
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.Room
 import com.latte.crime.Crime
@@ -8,6 +9,7 @@ import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.Executors
 
+private const val TAG = "CrimeRepository"
 private const val DATABASE_NAME = "crime-database"
 
 class CrimeRepository private constructor(context: Context){
@@ -30,13 +32,13 @@ class CrimeRepository private constructor(context: Context){
             crimeDao.updateCrime(crime)
         }
     }
-    fun insertCrime(crime: Crime){
-        executor.execute {
+
+    fun addCrime(crime: Crime) {
+        executor.execute{
+            Log.d(TAG,"addCrime")
             crimeDao.addCrime(crime)
         }
     }
-
-
 
     companion object{
         private var INSTANCE: CrimeRepository? = null

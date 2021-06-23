@@ -3,9 +3,7 @@ package com.latte.crime
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -26,8 +24,12 @@ class CrimeListFragment: Fragment() {
         ViewModelProvider(this).get(CrimeListViewModel::class.java)
     }
 
-    // 호스팅 액티비티에서 구현할 인터페이스
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
 
+    // 호스팅 액티비티에서 구현할 인터페이스
     interface Callbacks{
         fun onCrimeSelected(crimeId: UUID)
     }
@@ -133,6 +135,24 @@ class CrimeListFragment: Fragment() {
         crimeRecyclerView.adapter = adapter
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_list,menu)
+        Log.d(TAG,"create option Menu")
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId){
+            R.id.new_crime -> {
+                Log.d(TAG,"before")
+                val crime = Crime()
+                crimeListViewModel.addCrime(crime)
+                callbacks?.onCrimeSelected(crime.id)
+                Log.d(TAG,"after")
+                true
+            }else -> super.onOptionsItemSelected(item)
+        }
+     }
 
     companion object{
         fun newInstance(): CrimeListFragment{
