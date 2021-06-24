@@ -18,7 +18,8 @@ class CrimeRepository private constructor(context: Context){
         context.applicationContext,
         CrimeDatabase::class.java,
         DATABASE_NAME
-    ).build()
+//    ).build()
+    ).addMigrations(migration_1_2).build() // 2버전 빌드
 
     private val crimeDao = database.crimeDao()
     private val executor = Executors.newSingleThreadExecutor()
