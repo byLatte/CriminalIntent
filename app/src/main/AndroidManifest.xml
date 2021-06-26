@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.latte.crime">
 
+<!--    카메라 사용 선언-->
+    <uses-feature android:name="android.hardware.camera"
+                  android:required="false"/>
     <application
         android:name=".CrimeApplication"
         android:allowBackup="true"
