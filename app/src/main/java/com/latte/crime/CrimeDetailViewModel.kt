@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.latte.crime.database.CrimeRepository
+import java.io.File
 import java.util.*
 
 private const val TAG = "CrimeDetailViewModel"
@@ -22,6 +23,10 @@ class CrimeDetailViewModel: ViewModel() {
 
     fun saveCrime(crime: Crime){
         crimeRepository.updateCrime(crime)
+    }
+
+    fun getPhotoFile(crime: Crime): File{
+        return crimeRepository.getPhotoFile(crime)
     }
 
 }

@@ -17,6 +17,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+<!--        FileProvider 추가-->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.latte.crime.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+<!--            files.xml 연결-->
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/files" />
+        </provider>
     </application>
 
 </manifest>

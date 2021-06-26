@@ -1,20 +1,25 @@
 package com.latte.crime
 
+import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
+import android.widget.*
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.Observer
+import java.io.File
 import java.util.*
 
 
@@ -24,6 +29,7 @@ private const val DATE_FORMAT = "yyyy년 M월 d일 H시 m분, E요일"
 
 private const val REQUEST_DATE = 0
 private const val REQUEST_CONTACT = 1
+private const val REQUEST_PHOTO = 2
 
 // 디테일 뷰
 class CrimeFragment: Fragment(), DatePickerFragment.Callbacks{
@@ -34,6 +40,10 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks{
     private lateinit var solvedCheckBox: CheckBox
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
+    private lateinit var photoButton: ImageButton
+    private lateinit var photoView: ImageView
+    private lateinit var photoFile: File
+    private lateinit var photoUri: Uri
 
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy{
         ViewModelProvider(this).get(CrimeDetailViewModel::class.java)
@@ -60,6 +70,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks{
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
+        photoButton = view.findViewById(R.id.crime_camera) as ImageButton
+        photoView = view.findViewById(R.id.crime_photo) as ImageView
 
 //        dateButton.apply {
 //            text = crime.date.toString()
@@ -75,6 +87,8 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks{
             viewLifecycleOwner,
             Observer {crime -> crime?.let {
                 this.crime = crime
+                photoFile = crimeDetailViewModel.getPhotoFile(crime)
+                photoUri = FileProvider.getUriForFile(requireActivity(),"com.latte.crime.fileprovider",photoFile)
                 updateUI()
             }}
         )
@@ -138,12 +152,68 @@ class CrimeFragment: Fragment(), DatePickerFragment.Callbacks{
         }
 
         suspectButton.apply{
-            //연락처 요청청
+            //연락처 요청
             val pickContactIntent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
             setOnClickListener {
                 startActivityForResult(pickContactIntent, REQUEST_CONTACT)
             }
+
+            // 버튼비활성화 테스트용
+//            pickContactIntent.addCategory(Intent.CATEGORY_HOME)
+            val packageManager: PackageManager = requireActivity().packageManager
+            val resolvedActivity: ResolveInfo? = packageManager.resolveActivity(pickContactIntent,PackageManager.MATCH_DEFAULT_ONLY)
+            // 버튼 비활성화
+            if(resolvedActivity == null){
+                isEnabled = false
+            }
         }
+
+        photoButton.apply{
+            val packageManager: PackageManager = requireActivity().packageManager
+
+            val captureImage = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            val resolvedActivity: ResolveInfo? = packageManager.resolveActivity(captureImage, PackageManager.MATCH_DEFAULT_ONLY)
+            if(resolvedActivity == null){
+                isEnabled = false
+            }
+            setOnClickListener {
+                captureImage.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+
+                val cameraActivities: List<ResolveInfo> = packageManager.queryIntentActivities(captureImage,PackageManager.MATCH_DEFAULT_ONLY)
+                for(cameraActivity in cameraActivities){
+                    requireActivity().grantUriPermission(cameraActivity.activityInfo.packageName, photoUri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                }
+                startActivityForResult(captureImage, REQUEST_PHOTO)
+            }
+        }
+    }
+
+    // 연락처 정보 가져오기.
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when{
+            requestCode != Activity.RESULT_OK -> return
+
+            requestCode == REQUEST_CONTACT && data != null -> {
+                val contactUri: Uri = data.data ?: return
+                // 값을 반환할 필드 지정
+                val queryField = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+                // 쿼리 수행
+                val cursor = requireActivity().contentResolver.query(contactUri,queryField,null,null,null)
+                cursor?.use{
+                    if(it.count == 0 ){
+                        return
+                    }
+                    // 첫번째 행 열 값을 가져온다.
+                    it.moveToFirst()
+                    val suspect = it.getString(0)
+                    crime.suspect = suspect
+                    crimeDetailViewModel.saveCrime(crime)
+                    suspectButton.text = suspect
+                }
+
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onStop() {
